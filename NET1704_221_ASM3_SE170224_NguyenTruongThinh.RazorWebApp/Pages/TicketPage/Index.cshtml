@@ -1,0 +1,158 @@
+﻿@page
+@model NET1704_221_ASM3_SE170224_NguyenTruongThinh.RazorWebApp.Pages.TicketPage.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Tickets[0].TimeStart)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tickets[0].TicketType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tickets[0].Price)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tickets[0].AvailableQuantity)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tickets[0].TimeEnd)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tickets[0].CreateDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tickets[0].UpdateDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tickets[0].TicketName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tickets[0].Status)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody id="ticketList">
+        @foreach (var item in Model.Tickets)
+        {
+            <tr id="ticket-@item.TicketId">
+                <td>
+                    @Html.DisplayFor(modelItem => item.TimeStart)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TicketType)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Price)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AvailableQuantity)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TimeEnd)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreateDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UpdateDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TicketName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Status)
+                </td>
+                <td>
+                    <a asp-page="./Edit" asp-route-id="@item.TicketId">Edit</a> |
+                    <a asp-page="./Details" asp-route-id="@item.TicketId">Details</a> |
+                    <a asp-page="./Delete" asp-route-id="@item.TicketId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.0/signalr.min.js"></script>
+    <script type="text/javascript">
+        // Tạo kết nối đến SignalR Hub tại "/ticketHub"
+        const connection = new signalR.HubConnectionBuilder().withUrl("/ticketHub").build();
+
+        // Bắt đầu kết nối
+        connection.start().catch(function (err) {
+            return console.error(err.toString());
+        });
+
+        // Xử lý thông báo cập nhật vé
+        connection.on("ReceiveTicketUpdate", function (ticket) {
+            console.log("Update:", ticket);
+            const existingRow = document.getElementById(`ticket-${ticket.ticketId}`);
+            if (existingRow) {
+                // Cập nhật nội dung của dòng đã tồn tại
+                existingRow.innerHTML = `
+                                        <td>${ticket.timeStart}</td>
+                                        <td>${ticket.ticketType}</td>
+                                        <td>${ticket.price}</td>
+                                        <td>${ticket.availableQuantity}</td>
+                                        <td>${ticket.timeEnd}</td>
+                                        <td>${ticket.createDate}</td>
+                                        <td>${ticket.updateDate}</td>
+                                        <td>${ticket.ticketName}</td>
+                                        <td>${ticket.status}</td>
+                                    <td>
+                                        <a href='/TicketPage/Edit?id=${ticket.ticketId}'>Edit</a> |
+                                        <a href='/TicketPage/Details?id=${ticket.ticketId}'>Details</a> |
+                                        <a href='/TicketPage/Delete?id=${ticket.ticketId}'>Delete</a>
+                                    </td>`;
+            }
+        });
+
+        // Xử lý thông báo tạo mới vé
+        connection.on("ReceiveTicketCreate", function (ticket) {
+            console.log("Create:", ticket);
+            const ticketList = document.getElementById("ticketList");
+            const newRow = document.createElement("tr");
+            newRow.id = `ticket-${ticket.ticketId}`;
+            newRow.innerHTML = `
+                                <td>${ticket.timeStart}</td>
+                                <td>${ticket.ticketType}</td>
+                                <td>${ticket.price}</td>
+                                <td>${ticket.availableQuantity}</td>
+                                <td>${ticket.timeEnd}</td>
+                                <td>${ticket.createDate}</td>
+                                <td>${ticket.updateDate}</td>
+                                <td>${ticket.ticketName}</td>
+                                <td>${ticket.status}</td>
+                                <td>
+                                    <a href='/TicketPage/Edit?id=${ticket.ticketId}'>Edit</a> |
+                                    <a href='/TicketPage/Details?id=${ticket.ticketId}'>Details</a> |
+                                    <a href='/TicketPage/Delete?id=${ticket.ticketId}'>Delete</a>
+                                </td>`;
+            ticketList.appendChild(newRow);
+        });
+
+        // Xử lý thông báo xóa vé
+        connection.on("ReceiveTicketDelete", function (ticketId) {
+            console.log("Delete:", ticketId);
+            const rowToRemove = document.getElementById(`ticket-${ticketId}`);
+            if (rowToRemove) {
+                rowToRemove.remove();
+            }
+        });
+
+
+    </script>
+}
+
